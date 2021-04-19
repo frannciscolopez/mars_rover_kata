@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Data
-public class Coordinate {
+public class Coordinates {
     private int row;
     private int column;
 }

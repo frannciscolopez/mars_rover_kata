@@ -10,5 +10,5 @@ import merkle.test.marsroverkata.enums.Object;
 public abstract class Cell{
     private int id;
     private Object object;
-    private Coordinate coordinate;
+    private Coordinates coordinates;
 }

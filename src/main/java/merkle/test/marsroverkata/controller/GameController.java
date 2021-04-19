@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import merkle.test.marsroverkata.enums.Direction;
 import merkle.test.marsroverkata.enums.Move;
-import merkle.test.marsroverkata.model.Coordinate;
+import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.service.GameService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class GameController {
     
 
     @GetMapping(value = "/start-game")
-    public void startGame(@RequestBody Coordinate startingPoint, Direction directionFacing, int boardSize){
+    public void startGame(@RequestBody Coordinates startingPoint, Direction directionFacing, int boardSize){
         this.gameService.startGame(startingPoint, directionFacing, boardSize);
     }
 
@@ -38,7 +38,7 @@ public class GameController {
 
     @GetMapping(value ="/prueba")
     public void prueba(){
-        Coordinate s = new Coordinate();
+        Coordinates s = new Coordinates();
         s.setColumn(2);
         s.setRow(1);
         this.gameService.startGame(s, Direction.N, 4);

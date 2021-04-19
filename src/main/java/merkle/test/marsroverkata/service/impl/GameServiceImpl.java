@@ -14,8 +14,11 @@ import merkle.test.marsroverkata.model.Board;
 import merkle.test.marsroverkata.model.Cell;
 import merkle.test.marsroverkata.model.Obstacle;
 import merkle.test.marsroverkata.model.Rover;
-import merkle.test.marsroverkata.model.Coordinate;
+import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.model.EmptyCell;
+import merkle.test.marsroverkata.service.BoardService;
+import merkle.test.marsroverkata.service.CellService;
+import merkle.test.marsroverkata.service.CoordinatesService;
 import merkle.test.marsroverkata.service.GameService;
 import merkle.test.marsroverkata.utils.Utils;
 
@@ -25,277 +28,158 @@ public class GameServiceImpl implements GameService{
 
     @Autowired
     private Utils utils;
-    
-    ArrayList<Move> movements = new ArrayList<Move>();
+    @Autowired
+    private CellService cellService;
+    @Autowired
+    private BoardService boardService;
+    @Autowired
+    private CoordinatesService coordinateService;
 
+    ArrayList<Move> movements = new ArrayList<Move>();
     @Override
-    public void startGame(Coordinate startingPoint, Direction directionFacing, int boardSize){
-        Board board = this.utils.buildBoard(boardSize);
-        board = this.intializeBoard(board);
-        //this.printBoard(board);
-        Rover rover = this.buildRover(startingPoint,directionFacing);
-        this.setRoverPosition(rover, board);
-        Coordinate s = new Coordinate();
-        s.setColumn(1);
-        s.setRow(2);
-        Obstacle obstacle = this.buildObstacle(s);
-        this.setObstaclePosition(obstacle, board);
+    public void startGame(Coordinates startingPoint, Direction directionFacing, int boardSize){
+        Board board = this.buildBoard(boardSize);
+        this.colocateObstaclesBoard(board);
+        Rover rover = this.colocateRoverBoard(startingPoint, directionFacing, board);
         movements.add(Move.RIGHT);
         movements.add (Move.BACKWARD);
-        this.moveRove(movements, rover, board);
-
+        movements.add(Move.FORWARD);
+        movements.add(Move.FORWARD);
+        movements.add(Move.LEFT);
+        this.processMovements(movements, rover, board);
     }
-    
-    public void processMovements(ArrayList<Move> movements){
-        for(int i = 0; i < movements.size(); i++){
-          
-            
-        }
 
+    public Board buildBoard(int boardSize){
+        Board board = this.boardService.createBoard(boardSize);
+        this.boardService.intializeBoard(board);
+        return board;
     }
-    public Rover buildRover(Coordinate startingPoint, Direction directionFacing ){
-        Rover rover = new Rover();
-        rover.setDirectionFacing(directionFacing);
-        rover.setCoordinate(startingPoint);
-        rover.setObject(Object.ROVER);
+
+    public Rover colocateRoverBoard(Coordinates startingPoint, Direction directionFacing, Board board){
+        Rover rover = this.cellService.buildRover(startingPoint,directionFacing);
+        this.cellService.setRoverInBoard(rover, board);
         return rover;
     }
 
-    public Obstacle buildObstacle(Coordinate obstacleCoordinate){
-        Obstacle obstacle = new Obstacle();
-        obstacle.setCoordinate(obstacleCoordinate);
-        obstacle.setObject(Object.OBSTACLE);
-        return obstacle;
+    public void colocateObstaclesBoard(Board board){
+        Coordinates obstacleCoordinate = this.utils.getRandomObstacleCoordinates(board);
+        Obstacle obstacle = this.cellService.buildObstacle(obstacleCoordinate);
+        this.cellService.setObstacleInBoard(obstacle, board);
     }
-
-    public boolean setRoverPosition(Rover rover, Board board){ // revisar este codigo repetido
-        if(board.getBoard()[rover.getCoordinate().getRow()][rover.getCoordinate().getColumn()].getObject() !=Object.OBSTACLE){
-            board.getBoard()[rover.getCoordinate().getRow()][rover.getCoordinate().getColumn()] = rover; 
-            return true;
-        } else{
-            return false;
+    
+    public void processMovements(ArrayList<Move> movements, Rover rover, Board board){
+        for(int i = 0; i < movements.size(); i++){
+          this.moveRove(movements.get(i), rover, board);
+          System.out.print("[ Rover information: Nº movement: "+i+", Coordinates: {"+rover.getCoordinates().getRow()+","+rover.getCoordinates().getColumn()+ "}, Movement type: " +movements.get(i).toString()+"]\n");
+          this.utils.printBoard(board);
         }
-   
-    }
-    public void setObstaclePosition(Obstacle obstacle, Board board){ // revisar este codigo repetido
-        if(board.getBoard()[obstacle.getCoordinate().getRow()][obstacle.getCoordinate().getColumn()].getObject() != Object.ROVER){
-            board.getBoard()[obstacle.getCoordinate().getRow()][obstacle.getCoordinate().getColumn()] = obstacle; 
-        }      
     }
 
-    public void setEmptyCellPosition(Coordinate coordinate, Board board){
-        EmptyCell emptyCell = new EmptyCell();
-        emptyCell.setCoordinate(coordinate);
-        emptyCell.setObject(Object.EMPTY);
-        board.getBoard()[coordinate.getRow()][coordinate.getColumn()] = emptyCell; 
-    }
-
-    public void moveRove(ArrayList<Move> movements, Rover rover, Board board ){
-
-          for(int i = 0; i < movements.size(); i++){
-
-            switch(movements.get(i)) {
+    public void moveRove(Move movement, Rover rover, Board board ){
+        Coordinates coordinates = new Coordinates(); 
+            switch(movement) {
                 case LEFT:
-                    this.turnLeft(rover, board);
+                    coordinates = this.turnLeft(rover, board);
                   break;
                 case RIGHT:
-                    this.turnRight(rover,board);
+                    coordinates = this.turnRight(rover,board);
                   break;
                 case BACKWARD:
-                    this.moveBackward(rover,board);
+                    coordinates = this.moveBackward(rover,board);
                   break;
                 case FORWARD:
-                    this.moveForward(rover,board);
+                    coordinates = this.moveForward(rover,board);
                   break;
               }
-          
-            
-        }
-        printBoard(board);
-
+              this.coordinateService.turnPlanetIfNecessary(coordinates, board);
+              boolean movementIsPossible = this.coordinateService.movementIsPossible(board, coordinates);
+              if(movementIsPossible){
+                this.cellService.setEmptyCellInBoard(rover.getCoordinates(), board);
+                this.cellService.updateCellCordinates(rover, coordinates);
+                this.cellService.setRoverInBoard(rover, board);
+              }else{
+                  System.out.println("This movement is not possible because there is an obstacle in the position: ["+coordinates.getRow()+", "+coordinates.getColumn()+"]");
+              }
     }
-    public void turnLeft(Rover rover, Board board){
-        Coordinate coordinate = new Coordinate();
+
+
+    public Coordinates turnLeft(Rover rover, Board board){
+        Coordinates coordinates = new Coordinates();
+        Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
             case N:
-                coordinate = this.subCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesRow(roverCoordinates);
               break;
             case S:
-                coordinate = this.addCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesRow(roverCoordinates);
               break;
             case E:
-                coordinate = this.addCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesColumn(roverCoordinates);
               break;
             case W:
-                coordinate = this.subCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesColumn(roverCoordinates);
               break;
-          }  
-          rover = this.updateRoverCoordinate(rover, coordinate);
-          boolean s = this.setRoverPosition(rover, board);
-          if(s){
-
-            this.setEmptyCellPosition(coordinate, board);  
-          }
+          } 
+          return coordinates;
     }
-    public void turnRight(Rover rover, Board board){
-        Coordinate coordinate = new Coordinate();
+
+    public Coordinates turnRight(Rover rover, Board board){
+        Coordinates coordinates = new Coordinates();
+        Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
             case N:
-                coordinate = this.addCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesRow(roverCoordinates);
               break;
             case S:
-                coordinate = this.subCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesRow(roverCoordinates);
               break;
             case E:
-                coordinate = this.subCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesColumn(roverCoordinates);
               break;
             case W:
-                coordinate = this.addCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesColumn(roverCoordinates);
               break;
           }  
-          rover = this.updateRoverCoordinate(rover, coordinate);
-          boolean s =  this.setRoverPosition(rover, board); 
-          if(s){
-
-            this.setEmptyCellPosition(coordinate, board);  
-          }  
+            return coordinates; 
     }
-    public void moveForward(Rover rover, Board board){
-        Coordinate coordinate = new Coordinate();
+
+    public Coordinates moveForward(Rover rover, Board board){
+        Coordinates coordinates = new Coordinates();
+        Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
             case N:
-                coordinate = this.addCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesColumn(roverCoordinates);
               break;
             case S:
-                coordinate = this.subCoordinateColumn(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesColumn(roverCoordinates);
               break;
             case E:
-                coordinate = this.addCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.addCoordinatesRow(roverCoordinates);
               break;
             case W:
-                coordinate = this.subCoordinateRow(rover.getCoordinate());
+                coordinates = this.coordinateService.subCoordinatesRow(roverCoordinates);
               break;
           }  
-          rover = this.updateRoverCoordinate(rover, coordinate);
-          boolean s = this.setRoverPosition(rover, board);  
-          if(s){
-
-            this.setEmptyCellPosition(coordinate, board);  
-          }
+        return coordinates;
     }
-    public void moveBackward(Rover rover, Board board){
-        Coordinate coordinate = new Coordinate();
+
+    public Coordinates moveBackward(Rover rover, Board board){
+        Coordinates coordinates = new Coordinates();
+        Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
             case N:
-                coordinate = this.subCoordinateColumn(rover.getCoordinate());                
+                coordinates = this.coordinateService.subCoordinatesColumn(roverCoordinates);                
               break;
             case S:
-                coordinate = this.addCoordinateColumn(rover.getCoordinate());              
+                coordinates = this.coordinateService.addCoordinatesColumn(roverCoordinates);              
               break;
             case E:
-                coordinate = this.subCoordinateRow(rover.getCoordinate());            
+                coordinates = this.coordinateService.subCoordinatesRow(roverCoordinates);            
               break;
             case W:
-                coordinate = this.addCoordinateRow(rover.getCoordinate());          
+                coordinates = this.coordinateService.addCoordinatesRow(roverCoordinates);          
               break;
           }  
-          rover = this.updateRoverCoordinate(rover, coordinate);
-          boolean s =  this.setRoverPosition(rover, board);
-          if(s){
-
-            this.setEmptyCellPosition(coordinate, board);  
-          }
+          return coordinates;
     }
-
-    public Rover updateRoverCoordinate(Rover rover, Coordinate newCoordinate){
-        rover.setCoordinate(newCoordinate);
-        return rover;
-    }
-
-    public Coordinate addCoordinateRow(Coordinate coordinate){
-        int newRowPosition = coordinate.getRow() + 1;
-        coordinate.setRow(newRowPosition);
-        return coordinate;
-    }
-
-    public Coordinate addCoordinateColumn(Coordinate coordinate){
-        int newColumnPosition = coordinate.getColumn() + 1;
-        coordinate.setColumn(newColumnPosition);
-        return coordinate;
-    }
-
-    public Coordinate subCoordinateRow(Coordinate coordinate){
-        int newRowPosition = coordinate.getRow() - 1;
-        coordinate.setRow(newRowPosition);
-        return coordinate;
-    }
-
-    public Coordinate subCoordinateColumn(Coordinate coordinate){
-        int newColumnPosition = coordinate.getColumn() - 1;
-        coordinate.setColumn(newColumnPosition);
-        return coordinate;
-    }
-    public void printBoard(Board board){
-    StringBuilder topLines = new StringBuilder();
-    StringBuilder midLines = new StringBuilder();
-    StringBuilder columnNumber = new StringBuilder();
-    for (int x = 0; x < board.getBoard().length; ++x) {
-        if(x==0){
-            topLines.append(" +---------");
-        }else{
-            topLines.append("+---------");
-        }
-        midLines.append(" |        ");
-        columnNumber.append("     "+x+"    ");
-    }
-    topLines.append("+");
-    midLines.append(" |");
-
-    for (int y = 0; y < board.getBoard().length; ++y) {
-        if(y==0){
-            System.out.println(columnNumber);
-        }
-        System.out.println(topLines);
-        System.out.println(midLines);
-        for (int x = 0; x < board.getBoard().length; ++x) {
-            if(x==0){
-                System.out.print(+y+"|");
-            }else{
-                System.out.print(" |");
-            }
-                StringBuilder output = new StringBuilder(board.getBoard()[x][y].getObject().toString());
-                while (output.length() < 8) {
-                    output.append(" ");
-                    if (output.length() < 8) {
-                        output.insert(0, " ");
-                    }
-                }
-                System.out.print(output);
-            
-        }
-        System.out.println(" |");
-        System.out.println(midLines);
-    }
-    System.out.println(topLines);  
-    }
-
-    public Board intializeBoard(Board board){
-        EmptyCell cell = new EmptyCell(); // cambiar
-        cell.setId(1);
-        cell.setObject(Object.EMPTY);
-        for(int x = 0 ; x < board.getBoard().length ; x++){
-            for(int y = 0 ; y < board.getBoard().length ; y++){
-                Coordinate coordinate = new Coordinate ();
-                coordinate.setColumn(y);
-                coordinate.setColumn(x);
-                cell.setCoordinate(coordinate);
-                board.getBoard()[x][y] = cell;
-            }
-        }
-        return board;
-
-    }
-
-
-    
 }
