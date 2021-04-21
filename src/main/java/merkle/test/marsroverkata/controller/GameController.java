@@ -13,16 +13,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/game-controls")
+@RequestMapping("/rover-management")
 public class GameController {
 
     @Autowired
     private MainService gameService;
     
-    @GetMapping(value = "/start-game/{directionFacing}/{boardSize}")
+    /**
+     * endpoint de dónde se iniciará todo el funcionamiento del sistema
+     * @param startingPoint
+     * @param directionFacing
+     * @param boardSize
+     */
+    @GetMapping(value = "/start/{directionFacing}/{worldSize}")
     public void startGame(@RequestBody Coordinates startingPoint, @PathVariable(value = "directionFacing") Direction directionFacing,
-    @PathVariable(value = "boardSize") int boardSize){
-        this.gameService.createWorld(startingPoint, directionFacing, boardSize);
+    @PathVariable(value = "worldSize") int worldSize){
+        this.gameService.createWorld(startingPoint, directionFacing, worldSize);
     }
     
 }
