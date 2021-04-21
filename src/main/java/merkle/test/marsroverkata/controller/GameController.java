@@ -23,7 +23,7 @@ public class GameController {
      * endpoint de dónde se iniciará todo el funcionamiento del sistema
      * @param startingPoint
      * @param directionFacing
-     * @param boardSize
+     * @param worldSize
      */
     @GetMapping(value = "/start/{directionFacing}/{worldSize}")
     public void startGame(@RequestBody Coordinates startingPoint, @PathVariable(value = "directionFacing") Direction directionFacing,
