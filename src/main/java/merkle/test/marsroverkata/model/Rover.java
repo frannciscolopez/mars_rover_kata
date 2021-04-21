@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
-public class Rover extends Cell{
+public class Rover extends Planet{
     private String name;
     private Direction directionFacing;
 }

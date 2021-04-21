@@ -1,14 +1,21 @@
 package merkle.test.marsroverkata.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import merkle.test.marsroverkata.service.WorldService;
 
 import merkle.test.marsroverkata.enums.Object;
-import merkle.test.marsroverkata.model.Board;
+import merkle.test.marsroverkata.model.World;
 import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.service.CoordinatesService;
 
+
+
 @Service
 public class CoordinatesServiceImpl implements CoordinatesService{
+
+    @Autowired
+    private WorldService worldService;
 
     public Coordinates addCoordinatesRow(Coordinates coordinates){
         int newRowPosition = coordinates.getRow() + 1;
@@ -34,25 +41,29 @@ public class CoordinatesServiceImpl implements CoordinatesService{
         return newCoordinates;
     }
 
-    public boolean movementIsPossible(Board board, Coordinates possibleCoordinate){
-        return board.getBoard()[possibleCoordinate.getRow()][possibleCoordinate.getColumn()].getObject() == Object.EMPTY;
+    public boolean movementIsPossible(World world, Coordinates possibleCoordinate){
+        final int row = possibleCoordinate.getRow();
+        final int column = possibleCoordinate.getColumn();
+        worldService.getPlanetWorld(possibleCoordinate, world);
+        Object object = world.getWorld()[row][column].getObject();
+        return  object == Object.EMPTY;
       }
 
-    public Coordinates turnPlanetIfNecessary(Coordinates coordinates, Board board){
+    public Coordinates turnPlanetIfNecessary(Coordinates coordinates, World world){
         final int row = coordinates.getRow();
         final int column = coordinates.getColumn();
-        final int lengthBoard = board.getBoard().length - 1;
-        if(row == lengthBoard){
+        final int lengthWorld = world.getWorld().length - 1;
+        if(row > lengthWorld){
             coordinates.setRow(0);
             System.out.println("Turn in direction +X");
         }else if (row<0){
-            coordinates.setRow(lengthBoard);
+            coordinates.setRow(lengthWorld);
             System.out.println("Turn the in direction -X");
-        }else if (column > lengthBoard){
+        }else if (column > lengthWorld){
             coordinates.setColumn(0);
             System.out.println("Turn the planet in direction +Y");
         }else if (column < 0){
-            coordinates.setColumn(lengthBoard);
+            coordinates.setColumn(lengthWorld);
             System.out.println("Turn in direction -Y");
         }
         return coordinates;

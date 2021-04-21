@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
-public class Board {
-    private Cell [][] board;
+public class World {
+    private Planet [][] world;
 
-    public Board (int boardSize){
-       this.board = new Cell[boardSize][boardSize];
+    public World (int worldSize){
+       this.world = new Planet[worldSize][worldSize];
         
     }
 }

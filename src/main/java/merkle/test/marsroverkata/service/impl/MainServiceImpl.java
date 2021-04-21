@@ -10,100 +10,116 @@ import lombok.NoArgsConstructor;
 import merkle.test.marsroverkata.enums.Direction;
 import merkle.test.marsroverkata.enums.Move;
 import merkle.test.marsroverkata.enums.Object;
-import merkle.test.marsroverkata.model.Board;
-import merkle.test.marsroverkata.model.Cell;
+import merkle.test.marsroverkata.model.World;
+import merkle.test.marsroverkata.model.Planet;
 import merkle.test.marsroverkata.model.Obstacle;
 import merkle.test.marsroverkata.model.Rover;
 import merkle.test.marsroverkata.model.Coordinates;
-import merkle.test.marsroverkata.model.EmptyCell;
-import merkle.test.marsroverkata.service.BoardService;
-import merkle.test.marsroverkata.service.CellService;
+import merkle.test.marsroverkata.model.EmptyPlanet;
+import merkle.test.marsroverkata.service.WorldService;
+import merkle.test.marsroverkata.service.PlanetService;
 import merkle.test.marsroverkata.service.CoordinatesService;
-import merkle.test.marsroverkata.service.GameService;
+import merkle.test.marsroverkata.service.MainService;
 import merkle.test.marsroverkata.utils.Utils;
 
 
 @Service
-public class GameServiceImpl implements GameService{
+public class MainServiceImpl implements MainService{
 
     @Autowired
     private Utils utils;
     @Autowired
-    private CellService cellService;
+    private PlanetService planetService;
     @Autowired
-    private BoardService boardService;
+    private WorldService worldService;
     @Autowired
     private CoordinatesService coordinateService;
 
-    ArrayList<Move> movements = new ArrayList<Move>();
+    
+
     @Override
-    public void startGame(Coordinates startingPoint, Direction directionFacing, int boardSize){
-        Board board = this.buildBoard(boardSize);
-        this.colocateObstaclesBoard(board);
-        Rover rover = this.colocateRoverBoard(startingPoint, directionFacing, board);
-        movements.add(Move.RIGHT);
-        movements.add (Move.BACKWARD);
-        movements.add(Move.FORWARD);
-        movements.add(Move.FORWARD);
-        movements.add(Move.LEFT);
-        this.processMovements(movements, rover, board);
+    public void createWorld(Coordinates startingPoint, Direction directionFacing, int worldSize){
+        ArrayList<Move> movements = buildMovements();
+        World world = this.buildWorld(worldSize);
+        this.putObstaclesWorld(world);
+        Rover rover = this.putRoverWorld(startingPoint, directionFacing, world);
+
+        this.processMovements(movements, rover, world);
     }
 
-    public Board buildBoard(int boardSize){
-        Board board = this.boardService.createBoard(boardSize);
-        this.boardService.intializeBoard(board);
-        return board;
+    public ArrayList<Move> buildMovements (){
+      ArrayList<Move> movements = new ArrayList<Move>();
+      movements.add(Move.RIGHT);
+      movements.add (Move.BACKWARD);
+      movements.add(Move.FORWARD);
+      movements.add(Move.FORWARD);
+      movements.add(Move.LEFT);
+      movements.add(Move.FORWARD);
+      movements.add(Move.FORWARD);
+      return movements;
     }
 
-    public Rover colocateRoverBoard(Coordinates startingPoint, Direction directionFacing, Board board){
-        Rover rover = this.cellService.buildRover(startingPoint,directionFacing);
-        this.cellService.setRoverInBoard(rover, board);
+    public World buildWorld(int worldSize){
+        World world = this.worldService.createWorld(worldSize);
+        this.worldService.initializeWorld(world);
+        return world;
+    }
+
+    public Rover putRoverWorld(Coordinates startingPoint, Direction directionFacing, World world){
+        Rover rover = this.planetService.buildRover(startingPoint,directionFacing);
+        this.colocateIfIsPossible(world, startingPoint, rover);
         return rover;
     }
 
-    public void colocateObstaclesBoard(Board board){
-        Coordinates obstacleCoordinate = this.utils.getRandomObstacleCoordinates(board);
-        Obstacle obstacle = this.cellService.buildObstacle(obstacleCoordinate);
-        this.cellService.setObstacleInBoard(obstacle, board);
+    public void putObstaclesWorld(World world){
+        Coordinates obstacleCoordinate = this.utils.getRandomObstacleCoordinates(world);
+        Obstacle obstacle = this.planetService.buildObstacle(obstacleCoordinate);
+        this.planetService.setObstacleInWorld(obstacle, world);
     }
     
-    public void processMovements(ArrayList<Move> movements, Rover rover, Board board){
+    public void processMovements(ArrayList<Move> movements, Rover rover, World world){
         for(int i = 0; i < movements.size(); i++){
-          this.moveRove(movements.get(i), rover, board);
+          this.moveRove(movements.get(i), rover, world);
           System.out.print("[ Rover information: Nº movement: "+i+", Coordinates: {"+rover.getCoordinates().getRow()+","+rover.getCoordinates().getColumn()+ "}, Movement type: " +movements.get(i).toString()+"]\n");
-          this.utils.printBoard(board);
+          this.utils.printWorld(world);
         }
     }
 
-    public void moveRove(Move movement, Rover rover, Board board ){
+    public void moveRove(Move movement, Rover rover, World world ){
         Coordinates coordinates = new Coordinates(); 
             switch(movement) {
                 case LEFT:
-                    coordinates = this.turnLeft(rover, board);
+                    coordinates = this.turnLeft(rover);
                   break;
                 case RIGHT:
-                    coordinates = this.turnRight(rover,board);
+                    coordinates = this.turnRight(rover);
                   break;
                 case BACKWARD:
-                    coordinates = this.moveBackward(rover,board);
+                    coordinates = this.moveBackward(rover);
                   break;
                 case FORWARD:
-                    coordinates = this.moveForward(rover,board);
+                    coordinates = this.moveForward(rover);
                   break;
               }
-              this.coordinateService.turnPlanetIfNecessary(coordinates, board);
-              boolean movementIsPossible = this.coordinateService.movementIsPossible(board, coordinates);
-              if(movementIsPossible){
-                this.cellService.setEmptyCellInBoard(rover.getCoordinates(), board);
-                this.cellService.updateCellCordinates(rover, coordinates);
-                this.cellService.setRoverInBoard(rover, board);
-              }else{
-                  System.out.println("This movement is not possible because there is an obstacle in the position: ["+coordinates.getRow()+", "+coordinates.getColumn()+"]");
-              }
+              this.coordinateService.turnPlanetIfNecessary(coordinates, world);
+              this.colocateIfIsPossible(world, coordinates, rover);
+
+    }
+
+    public void colocateIfIsPossible(World world, Coordinates coordinates, Rover rover){
+      boolean movementIsPossible = this.coordinateService.movementIsPossible(world, coordinates);
+      if(movementIsPossible){
+        this.planetService.setEmptyPlanetInWorld(rover.getCoordinates(), world);
+        this.planetService.updatePlanetCordinates(rover, coordinates);
+        this.planetService.setRoverInWorld(rover, world);
+      }else{
+          System.out.println("This movement is not possible because there is an obstacle in the position: ["+coordinates.getRow()+", "+coordinates.getColumn()+"]");
+          System.exit(0);
+      }
     }
 
 
-    public Coordinates turnLeft(Rover rover, Board board){
+    public Coordinates turnLeft(Rover rover){
         Coordinates coordinates = new Coordinates();
         Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
@@ -123,7 +139,7 @@ public class GameServiceImpl implements GameService{
           return coordinates;
     }
 
-    public Coordinates turnRight(Rover rover, Board board){
+    public Coordinates turnRight(Rover rover){
         Coordinates coordinates = new Coordinates();
         Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
@@ -143,7 +159,7 @@ public class GameServiceImpl implements GameService{
             return coordinates; 
     }
 
-    public Coordinates moveForward(Rover rover, Board board){
+    public Coordinates moveForward(Rover rover){
         Coordinates coordinates = new Coordinates();
         Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {
@@ -163,7 +179,7 @@ public class GameServiceImpl implements GameService{
         return coordinates;
     }
 
-    public Coordinates moveBackward(Rover rover, Board board){
+    public Coordinates moveBackward(Rover rover){
         Coordinates coordinates = new Coordinates();
         Coordinates roverCoordinates = rover.getCoordinates();
         switch(rover.getDirectionFacing()) {

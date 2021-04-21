@@ -4,47 +4,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import merkle.test.marsroverkata.enums.Direction;
-import merkle.test.marsroverkata.enums.Move;
 import merkle.test.marsroverkata.model.Coordinates;
-import merkle.test.marsroverkata.service.GameService;
+import merkle.test.marsroverkata.service.MainService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/game-controls")
 public class GameController {
 
     @Autowired
-    private GameService gameService;
-
-    ArrayList<Move> movements = new ArrayList<Move>();
+    private MainService gameService;
     
-
-    @GetMapping(value = "/start-game")
-    public void startGame(@RequestBody Coordinates startingPoint, Direction directionFacing, int boardSize){
-        this.gameService.startGame(startingPoint, directionFacing, boardSize);
+    @GetMapping(value = "/start-game/{directionFacing}/{boardSize}")
+    public void startGame(@RequestBody Coordinates startingPoint, @PathVariable(value = "directionFacing") Direction directionFacing,
+    @PathVariable(value = "boardSize") int boardSize){
+        this.gameService.createWorld(startingPoint, directionFacing, boardSize);
     }
-
-    @GetMapping(value = "/process-movements")
-    public void startGame(){
-   
-        this.gameService.processMovements(movements);
-    }
-
-    @GetMapping(value ="/prueba")
-    public void prueba(){
-        Coordinates s = new Coordinates();
-        s.setColumn(2);
-        s.setRow(1);
-        this.gameService.startGame(s, Direction.N, 4);
-    }
-
-
-
     
 }

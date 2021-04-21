@@ -6,6 +6,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
-public class Obstacle extends Cell{
+public class Obstacle extends Planet{
     private String name;
 }

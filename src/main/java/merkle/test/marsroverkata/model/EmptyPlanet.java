@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
-public class EmptyCell extends Cell{
+public class EmptyPlanet extends Planet{
  
 }
 

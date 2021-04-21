@@ -6,6 +6,6 @@ import merkle.test.marsroverkata.enums.Move;
 import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.enums.Direction;
 
-public interface GameService {
-    void startGame(Coordinates startingPoint, Direction directionFacing, int boardSize);
+public interface MainService {
+    void createWorld(Coordinates startingPoint, Direction directionFacing, int worldSize);
 }

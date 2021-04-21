@@ -5,7 +5,7 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import merkle.test.marsroverkata.model.Board;
+import merkle.test.marsroverkata.model.World;
 import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.service.CoordinatesService;
 
@@ -15,11 +15,11 @@ public class Utils {
     @Autowired
     private CoordinatesService coordinatesService;
 
-    public void printBoard(Board board){
+    public void printWorld(World world){
         StringBuilder topLines = new StringBuilder();
         StringBuilder midLines = new StringBuilder();
         StringBuilder columnNumber = new StringBuilder();
-        for (int x = 0; x < board.getBoard().length; ++x) {
+        for (int x = 0; x < world.getWorld().length; ++x) {
             if(x==0){
                 topLines.append(" +---------");
             }else{
@@ -31,19 +31,19 @@ public class Utils {
         topLines.append("+");
         midLines.append(" |");
     
-        for (int y = 0; y < board.getBoard().length; ++y) {
+        for (int y = 0; y < world.getWorld().length; ++y) {
             if(y==0){
                 System.out.println(columnNumber);
             }
             System.out.println(topLines);
             System.out.println(midLines);
-            for (int x = 0; x < board.getBoard().length; ++x) {
+            for (int x = 0; x < world.getWorld().length; ++x) {
                 if(x==0){
                     System.out.print(+y+"|");
                 }else{
                     System.out.print(" |");
                 }
-                    StringBuilder output = new StringBuilder(board.getBoard()[x][y].getObject().toString());
+                    StringBuilder output = new StringBuilder(world.getWorld()[x][y].getObject().toString());
                     while (output.length() < 8) {
                         output.append(" ");
                         if (output.length() < 8) {
@@ -59,12 +59,12 @@ public class Utils {
         System.out.println(topLines);  
         }
 
-        public Coordinates getRandomObstacleCoordinates(Board board){
+        public Coordinates getRandomObstacleCoordinates(World world){
             Random rand = new Random();
             Coordinates randomCoordinates = new Coordinates();
-            int lengthBoard = board.getBoard().length;
-            int row  = rand.nextInt(lengthBoard-1);
-            int column = rand.nextInt(lengthBoard-1);
+            int lengthWorld = world.getWorld().length;
+            int row  = rand.nextInt(lengthWorld-1);
+            int column = rand.nextInt(lengthWorld-1);
             randomCoordinates = coordinatesService.buildCoordinates(row, column);
             return randomCoordinates ;
         }

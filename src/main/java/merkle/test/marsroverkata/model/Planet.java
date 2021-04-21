@@ -7,7 +7,7 @@ import merkle.test.marsroverkata.enums.Object;
 
 @RequiredArgsConstructor
 @Data
-public abstract class Cell{
+public abstract class Planet{
     private int id;
     private Object object;
     private Coordinates coordinates;

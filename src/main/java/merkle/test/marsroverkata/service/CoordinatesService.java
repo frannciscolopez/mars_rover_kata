@@ -2,7 +2,7 @@ package merkle.test.marsroverkata.service;
 
 import org.springframework.stereotype.Service;
 
-import merkle.test.marsroverkata.model.Board;
+import merkle.test.marsroverkata.model.World;
 import merkle.test.marsroverkata.model.Coordinates;
 import merkle.test.marsroverkata.model.Rover;
 
@@ -12,7 +12,7 @@ public interface CoordinatesService {
   Coordinates addCoordinatesColumn(Coordinates coordinates);
   Coordinates subCoordinatesRow(Coordinates coordinates);
   Coordinates subCoordinatesColumn(Coordinates coordinates);
-  boolean movementIsPossible(Board board, Coordinates possibleCoordinate);
+  boolean movementIsPossible(World world, Coordinates possibleCoordinate);
   Coordinates buildCoordinates(int row, int column);
-  Coordinates turnPlanetIfNecessary(Coordinates coordinates, Board board);
+  Coordinates turnPlanetIfNecessary(Coordinates coordinates, World world);
 }
