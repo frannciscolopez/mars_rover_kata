@@ -15,6 +15,10 @@ public class Utils {
     @Autowired
     private CoordinatesService coordinatesService;
 
+    /**
+     * método para imprimir el mundo
+     * @param world
+     */
     public void printWorld(World world){
         StringBuilder topLines = new StringBuilder();
         StringBuilder midLines = new StringBuilder();
@@ -59,6 +63,11 @@ public class Utils {
         System.out.println(topLines);  
         }
 
+        /**
+         * método para generar coordenadas aleatorias
+         * @param world
+         * @return
+         */
         public Coordinates getRandomObstacleCoordinates(World world){
             Random rand = new Random();
             Coordinates randomCoordinates = new Coordinates();

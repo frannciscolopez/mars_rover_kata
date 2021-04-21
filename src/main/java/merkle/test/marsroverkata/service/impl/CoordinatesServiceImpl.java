@@ -17,6 +17,9 @@ public class CoordinatesServiceImpl implements CoordinatesService{
     @Autowired
     private WorldService worldService;
 
+    /**
+     * métodos para sumar o restar coordenadas
+     */
     public Coordinates addCoordinatesRow(Coordinates coordinates){
         int newRowPosition = coordinates.getRow() + 1;
         Coordinates newCoordinate = this.buildCoordinates(newRowPosition, coordinates.getColumn());
@@ -41,6 +44,10 @@ public class CoordinatesServiceImpl implements CoordinatesService{
         return newCoordinates;
     }
 
+    /**
+     * devuelve true si es posible que el rover se mueva hacia 
+     * la posible coordenada ya que no habrá nada
+     */
     public boolean movementIsPossible(World world, Coordinates possibleCoordinate){
         final int row = possibleCoordinate.getRow();
         final int column = possibleCoordinate.getColumn();
@@ -49,6 +56,10 @@ public class CoordinatesServiceImpl implements CoordinatesService{
         return  object == Object.EMPTY;
       }
 
+      /**
+       * si un rover está al limite de la cuadricula y decide moverse
+       * empieza al inicio de esta
+       */
     public Coordinates turnPlanetIfNecessary(Coordinates coordinates, World world){
         final int row = coordinates.getRow();
         final int column = coordinates.getColumn();

@@ -21,6 +21,9 @@ public class PlanetServiceImpl implements PlanetService{
     @Autowired
     private WorldService worldService;
 
+    /**
+     * construcción de rover a partir de una dirección de inicio y una orientación
+     */
     public Rover buildRover(Coordinates startingPoint, Direction directionFacing ){
         Rover rover = new Rover();
         rover.setDirectionFacing(directionFacing);
@@ -28,12 +31,19 @@ public class PlanetServiceImpl implements PlanetService{
         rover.setObject(Object.ROVER);
         return rover;
     }
+
+    /**
+     * construimos un obstáculo a partir de unas coordenadas
+     */
     public Obstacle buildObstacle(Coordinates obstacleCoordinates){
         Obstacle obstacle = new Obstacle();
         obstacle.setCoordinates(obstacleCoordinates);
         obstacle.setObject(Object.OBSTACLE);
         return obstacle;
     }
+     /**
+     * construimos un planeta vacío a partir de unas coordenadas
+     */
     @Override
     public EmptyPlanet buildEmptyPlanet(Coordinates emptyPlanetCoordinates) {
         EmptyPlanet emptyPlanet = new EmptyPlanet();
@@ -42,6 +52,9 @@ public class PlanetServiceImpl implements PlanetService{
         return emptyPlanet;
     }
 
+    /**
+     * ponemos el diferente tipo de objeto en el planeta 
+     */
     public void setRoverInWorld(Rover rover, World world){
         Coordinates roverCoordinates = rover.getCoordinates();
         Planet planetWorld = this.worldService.getPlanetWorld(roverCoordinates, world);

@@ -35,7 +35,10 @@ public class MainServiceImpl implements MainService{
     @Autowired
     private CoordinatesService coordinateService;
 
-    
+    /**
+     * En este método lanzaremos los movimientos al rover, colocaremos el rover y el obstáculo, además de construir
+     * nuestro mundo
+     */
 
     @Override
     public void createWorld(Coordinates startingPoint, Direction directionFacing, int worldSize){
@@ -59,24 +62,46 @@ public class MainServiceImpl implements MainService{
       return movements;
     }
 
+    /**
+     * Método para construir nuestro mundo
+     * Se le puede pasar el tamaño que deseemos
+     * @param worldSize
+     * @return
+     */
     public World buildWorld(int worldSize){
         World world = this.worldService.createWorld(worldSize);
         this.worldService.initializeWorld(world);
         return world;
     }
 
+    /**
+     * a partir de unas coordenadas y una dirección
+     * seteamos la posición del rover en el mundo 
+     * @param startingPoint
+     * @param directionFacing
+     * @param world
+     * @return
+     */
     public Rover putRoverWorld(Coordinates startingPoint, Direction directionFacing, World world){
         Rover rover = this.planetService.buildRover(startingPoint,directionFacing);
-        this.colocateIfIsPossible(world, startingPoint, rover);
+        this.putIfIsPossible(world, startingPoint, rover);
         return rover;
     }
 
+    /**
+     * método para colocar un obstáculo en el mundo
+     * en unas coordenadas aleatorias
+     * @param world
+     */
     public void putObstaclesWorld(World world){
         Coordinates obstacleCoordinate = this.utils.getRandomObstacleCoordinates(world);
         Obstacle obstacle = this.planetService.buildObstacle(obstacleCoordinate);
         this.planetService.setObstacleInWorld(obstacle, world);
     }
     
+    /**
+     * método que procesa los movimientos e indica cada movimiento que realiza el rover
+     */
     public void processMovements(ArrayList<Move> movements, Rover rover, World world){
         for(int i = 0; i < movements.size(); i++){
           this.moveRove(movements.get(i), rover, world);
@@ -85,6 +110,12 @@ public class MainServiceImpl implements MainService{
         }
     }
 
+    /**
+     * método principal que decide que acción realizará depende del movimiento
+     * @param movement
+     * @param rover
+     * @param world
+     */
     public void moveRove(Move movement, Rover rover, World world ){
         Coordinates coordinates = new Coordinates(); 
             switch(movement) {
@@ -102,11 +133,19 @@ public class MainServiceImpl implements MainService{
                   break;
               }
               this.coordinateService.turnPlanetIfNecessary(coordinates, world);
-              this.colocateIfIsPossible(world, coordinates, rover);
+              this.putIfIsPossible(world, coordinates, rover);
 
     }
 
-    public void colocateIfIsPossible(World world, Coordinates coordinates, Rover rover){
+/**
+ * este método pondrá el rover en el mundo si es posible
+ * primero comprovará si no hay nada donde se quiere poner
+ * en caso contrario se cierra la ejecución y se reporta
+ * @param world
+ * @param coordinates
+ * @param rover
+ */
+    public void putIfIsPossible(World world, Coordinates coordinates, Rover rover){
       boolean movementIsPossible = this.coordinateService.movementIsPossible(world, coordinates);
       if(movementIsPossible){
         this.planetService.setEmptyPlanetInWorld(rover.getCoordinates(), world);
@@ -118,7 +157,9 @@ public class MainServiceImpl implements MainService{
       }
     }
 
-
+/**
+ * procesamiento de giro a la izquierda
+ */
     public Coordinates turnLeft(Rover rover){
         Coordinates coordinates = new Coordinates();
         Coordinates roverCoordinates = rover.getCoordinates();

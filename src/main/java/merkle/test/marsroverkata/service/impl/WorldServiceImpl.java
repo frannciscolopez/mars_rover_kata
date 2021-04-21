@@ -17,6 +17,9 @@ public class WorldServiceImpl implements WorldService{
     @Autowired
     private PlanetService planetService;
 
+    /**
+     * inicia el array bidimensional sobre el que montamos el mundo
+     */
 
     @Override
     public World createWorld(int worldSize){
@@ -24,6 +27,9 @@ public class WorldServiceImpl implements WorldService{
         return world;
     }
 
+    /**
+     * obtenemos un planeta a partir de unas coordenadas
+     */
     @Override
     public Planet getPlanetWorld(Coordinates planetCoordinate, World world) {
         int row = planetCoordinate.getRow();
@@ -32,13 +38,19 @@ public class WorldServiceImpl implements WorldService{
         return planetWorld;
     }
 
+    /**
+     * colocamos un planeta en el mundo
+     */
     @Override
     public void setPlanetWorld(World world, Planet object) {
         int row = object.getCoordinates().getRow();
         int column = object.getCoordinates().getColumn();
         world.getWorld()[row][column] = object;
     }  
-    
+   
+    /**
+     * creamos un mundo vacío
+     */
     public World initializeWorld(World world){
         EmptyPlanet emptyPlanet = new EmptyPlanet();
         Coordinates emptyPlanetCoordinates = new Coordinates();
